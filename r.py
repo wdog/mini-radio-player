@@ -35,8 +35,10 @@ class Radio():
         self.screen.keypad(1) #enable keyboard use
 
         curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLACK)
-        curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_RED)
-        curses.init_pair(3, curses.COLOR_RED, curses.COLOR_GREEN)
+        curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK)
+        curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_GREEN)
+
+        #border color
         curses.init_pair(4, curses.COLOR_GREEN, curses.COLOR_BLACK)
 
         # defin max row 
@@ -58,6 +60,8 @@ class Radio():
             exit_keys = [ord('q')]
             play_keys = [curses.KEY_ENTER, ord('p'), 10, 13 ]
             info_keys = [ord('i')]
+            play_toggle = [ord('t')]
+            info_credits = [ord('c')]
 
             # quit
             if key in exit_keys:
@@ -83,6 +87,19 @@ class Radio():
             if key in info_keys:
                 self.info_station = self.player.get_info()
 
+            # key toggle play 
+            if key in play_toggle:
+                self.player.toggle()
+                if not self.player.is_playing:
+                    self.info_station.clear()
+                    self.info_station.append('STOPPED')
+                else:
+                    self.info_station = self.player.get_info()
+
+
+
+            if key in info_credits:
+                self.show_credits()
 
             self.draw_menu()
         
@@ -118,17 +135,22 @@ class Radio():
         self.screen.attroff(curses.color_pair(2))
 
         # Render status bar
-        statusbarstr = "Press 'q' to exit, 'i' info, 'p' play,'t' toggle | {}".format(self.play_station['name'] if self.play_station else '')
+        statusbarstr = "Press 'q' to exit, 'i' info, 'p' play,'t' toggle, 'c' credits| {}".format(self.play_station['name'] if self.play_station else '')
         statusbarstr = statusbarstr[0:w-10] 
         self.screen.attron(curses.color_pair(3))
         self.screen.addstr(h-2, 1, statusbarstr)
-        self.screen.addstr(h-2, len(statusbarstr) + 1, " " * (w -
-            len(statusbarstr) - 2))
+        self.screen.addstr(h-2, len(statusbarstr) + 1, " " * (w - len(statusbarstr) - 2))
         self.screen.attroff(curses.color_pair(3))
 
-
-
+    def show_credits(self):
+        h ,w = self.screen.getmaxyx()
+        self.screen.erase()
+        title = "CODED WITH LOVE"
+        self.screen.addstr(h//2, (w - len(title))//2, title)
+        subtitle = "wdog <wdog666@gmail.com>"
+        self.screen.addstr(h//2+2, (w - len(subtitle))//2, subtitle) 
         self.screen.refresh()
+        time.sleep(3)
 
     def run(self):
             """Continue running the TUI until get interrupted"""
