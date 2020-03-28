@@ -15,6 +15,7 @@ class Radio():
     top = 0
     max_lines = 0
     play_station = None
+    info_station = []
 
     """description"""
     def __init__(self):
@@ -30,17 +31,18 @@ class Radio():
         curses.noecho()
         curses.cbreak()
         curses.start_color()
-        curses.curs_set(0) 
-        self.screen.keypad(1)
+        curses.curs_set(0) # hide cursor 
+        self.screen.keypad(1) #enable keyboard use
 
         curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLACK)
-        curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_CYAN)
+        curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_RED)
         curses.init_pair(3, curses.COLOR_RED, curses.COLOR_GREEN)
+        curses.init_pair(4, curses.COLOR_GREEN, curses.COLOR_BLACK)
 
         # defin max row 
         h,w = self.screen.getmaxyx()
 
-        self.max_lines = h//2
+        self.max_lines = h - 6
         self.padchars = w - 20
     def draw(self):
 
@@ -57,35 +59,43 @@ class Radio():
             play_keys = [curses.KEY_ENTER, ord('p'), 10, 13 ]
             info_keys = [ord('i')]
 
-
+            # quit
             if key in exit_keys:
                 logging.warn('bye')
                 break
 
+            # key down
             if key in down_keys and self.current_station < len(self.sm.stations) - 1:
                 self.current_station += 1
 
+            # key up
             if key in up_keys  and self.current_station > 0 :
                 self.current_station -= 1
-    
+
+            # key play
             if key in play_keys:
                 self.play_station = self.sm.stations[self.current_station]
                 self.player.load_station(self.play_station)
                 self.player.play()
+                self.info_station = self.player.get_info()
 
+            # key get station info
             if key in info_keys:
-                m = self.player.get_info()
-                #logging.info(help(m))
-                logging.info(m.get_duration())
+                self.info_station = self.player.get_info()
+
 
             self.draw_menu()
         
 
     def draw_menu(self):
         
-        self.screen.border()
+        self.screen.attron(curses.color_pair(4))
+        self.screen.border(0)
+        self.screen.attroff(curses.color_pair(4))
+
         h ,w = self.screen.getmaxyx()
-        self.screen.addstr(0 ,w//2, "~ MINI RADIO PLAYER ~", curses.color_pair(3) )
+        title = "~ MINI RADIO PLAYER ~"
+        self.screen.addstr(0 ,w//2 - len(title)//2, title , curses.color_pair(3) )
 
         if self.current_station + 1 == self.top  and self.current_station >= 0  :
             self.top -= 1
@@ -99,11 +109,21 @@ class Radio():
             color =  curses.color_pair(3) if row_idx == self.current_station else curses.color_pair(1)
             self.screen.addstr(idx + 2, 5, '{}. {}'.format( str(row_idx+1).rjust(4,' ') ,item['name'].ljust(self.padchars,'.')), color)
 
+        # Render status bar station info
+        statusbarstr = " - ".join(self.info_station)
+        statusbarstr = statusbarstr[0:w-10] 
+        self.screen.attron(curses.color_pair(2))
+        self.screen.addstr(h-3, 1, statusbarstr)
+        self.screen.addstr(h-3, len(statusbarstr) + 1, " " * (w - len(statusbarstr) - 2))
+        self.screen.attroff(curses.color_pair(2))
+
         # Render status bar
-        statusbarstr = "Press 'q' to exit | STATUS BAR | {}".format(self.play_station['name'] if self.play_station else '')
+        statusbarstr = "Press 'q' to exit, 'i' info, 'p' play,'t' toggle | {}".format(self.play_station['name'] if self.play_station else '')
+        statusbarstr = statusbarstr[0:w-10] 
         self.screen.attron(curses.color_pair(3))
         self.screen.addstr(h-2, 1, statusbarstr)
-        self.screen.addstr(h-2, len(statusbarstr) + 1, " " * (w - len(statusbarstr) - 1))
+        self.screen.addstr(h-2, len(statusbarstr) + 1, " " * (w -
+            len(statusbarstr) - 2))
         self.screen.attroff(curses.color_pair(3))
 
 
