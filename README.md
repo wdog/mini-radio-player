@@ -1,5 +1,5 @@
 # mini-radio-player
-A minimalistic radio player in python
+A minimalistic radio player in python3 and curses
 
 
 ```
