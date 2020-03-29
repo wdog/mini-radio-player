@@ -2,7 +2,7 @@
 A minimalistic radio player in python3 and curses
 
 
-```
+```bash
 mkdir projects
 python3 -m venv projects/venv
 cd projects/
