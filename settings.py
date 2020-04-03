@@ -5,6 +5,7 @@ class CursesSettings():
     def __init__(self,radio):
        
         self.screen = radio.screen
+        self.screen.keypad(1)  # enable keyboard use
 
         # defin max row
         h, w = self.screen.getmaxyx()
@@ -13,6 +14,7 @@ class CursesSettings():
 
 
         # init curses and curses input
+
         curses.noecho()
         curses.cbreak()
         curses.start_color()

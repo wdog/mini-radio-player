@@ -57,17 +57,20 @@ class Player:
 
     def get_info(self):
         """ get stream info """
-        time.sleep(1)
         info = []
-
+        
         try:
-            media = self.player.get_media()
-            media.parse_with_options(1, 0)
+            while True:
+                media = self.player.get_media()
+                media.parse_with_options(1, 0)
+                # 0 exists 
+                if len(media.get_meta(0)) > 0:
+                    break
 
             info.append(media.get_meta(0) if media.get_meta(0) else '')
             info.append(media.get_meta(2) if media.get_meta(2) else '')
             info.append(media.get_meta(12) if media.get_meta(12) else '')
         except Exception as e:
-            logging.info(e)
-
+            info = ['Loading...','','']
+            
         return info

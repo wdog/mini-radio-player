@@ -24,8 +24,7 @@ class Radio():
     def __init__(self):
      
         self.screen = curses.initscr()    
-        self.screen.keypad(1)  # enable keyboard use
-
+        
         # settings     
         self.settings = CursesSettings(self)   
         # station manager
@@ -80,7 +79,7 @@ class Radio():
 
         
         # Render status bar station info
-        if self.info_station:
+        if len(self.info_station) > 2:
             statusbarstr = self.info_station[2]
             statusbarstr = statusbarstr[0:w-10]
             self.screen.attron(curses.color_pair(2))
@@ -161,8 +160,7 @@ class Radio():
         if key in play_toggle:
             self.player.toggle()
             if not self.player.is_playing:
-                self.info_station.clear()
-                self.info_station.append('STOPPED')
+                self.info_station = ['STOPPED','','']
             else:
                 self.info_station = self.player.get_info()
         
