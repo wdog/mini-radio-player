@@ -6,103 +6,44 @@ import time
 import logging
 from station import Station
 from player import Player
+from settings import CursesSettings
 
 import curses
 import time
+
+"""Radio"""
 
 
 class Radio():
 
     top = 0
-    max_lines = 0
-    play_station = None
     info_station = []
+    current_station = 0
 
-    """description"""
 
     def __init__(self):
-        self.init_curses()
-        # station manager
-        self.sm = Station()
-        self.player = Player()
-
-    def init_curses(self):
-        self.screen = curses.initscr()
-        # init curses and curses input
-        curses.noecho()
-        curses.cbreak()
-        curses.start_color()
-        curses.curs_set(0)  # hide cursor
+     
+        self.screen = curses.initscr()    
         self.screen.keypad(1)  # enable keyboard use
 
-        curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLACK)
-        curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK)
-        curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_GREEN)
-
-        # border color
-        curses.init_pair(4, curses.COLOR_GREEN, curses.COLOR_BLACK)
-
-        # defin max row
-        h, w = self.screen.getmaxyx()
-
-        self.max_lines = h - 6
-        self.padchars = w - 20
-
+        # settings     
+        self.settings = CursesSettings(self)   
+        # station manager
+        self.sm = Station()
+        self.play_station = self.sm.stations[self.current_station]
+            
+        # player 
+        self.player = Player()
+        
+    """ Draw Menu Main Function """
     def draw(self):
 
-        self.current_station = 0
-        self.draw_menu()
 
         while True:
-            key = self.screen.getch()
-            self.screen.clear()
-            # quit key
-            down_keys = [curses.KEY_DOWN, ord('j')]
-            up_keys = [curses.KEY_UP, ord('k')]
-            exit_keys = [ord('q')]
-            play_keys = [curses.KEY_ENTER, ord('p'), 10, 13]
-            info_keys = [ord('i')]
-            play_toggle = [ord('t')]
-            info_credits = [ord('c')]
-
-            # quit
-            if key in exit_keys:
-                logging.warn('bye')
-                break
-
-            # key down
-            if key in down_keys and self.current_station < len(self.sm.stations) - 1:
-                self.current_station += 1
-
-            # key up
-            if key in up_keys and self.current_station > 0:
-                self.current_station -= 1
-
-            # key play
-            if key in play_keys:
-                self.play_station = self.sm.stations[self.current_station]
-                self.player.load_station(self.play_station)
-                self.player.play()
-                self.info_station = self.player.get_info()
-
-            # key get station info
-            if key in info_keys:
-                self.info_station = self.player.get_info()
-
-            # key toggle play
-            if key in play_toggle:
-                self.player.toggle()
-                if not self.player.is_playing:
-                    self.info_station.clear()
-                    self.info_station.append('STOPPED')
-                else:
-                    self.info_station = self.player.get_info()
-
-            if key in info_credits:
-                self.show_credits()
-
             self.draw_menu()
-
+            self._check_events()
+    
+    """ Draw Menu """
     def draw_menu(self):
 
         self.screen.attron(curses.color_pair(4))
@@ -117,29 +58,41 @@ class Radio():
         if self.current_station + 1 == self.top and self.current_station >= 0:
             self.top -= 1
 
-        if self.current_station == self.top + self.max_lines:
+        if self.current_station == self.top + self.settings.max_lines:
             self.top += 1
 
-        for idx, item in enumerate(self.sm.stations[self.top:self.top + self.max_lines]):
+        for idx, item in enumerate(self.sm.stations[self.top:self.top + self.settings.max_lines]):
             row_idx = idx + self.top
             # set color
             color = curses.color_pair(
                 3) if row_idx == self.current_station else curses.color_pair(1)
             self.screen.addstr(idx + 2, 5, '{}. {}'.format(str(row_idx+1).rjust(
-                4, ' '), item['name'].ljust(self.padchars, '.')), color)
+                4, ' '), item['name'].ljust(self.settings.padchars, '.')), color)
 
         # Render status bar station info
-        statusbarstr = " - ".join(self.info_station)
+        statusbarstr = " - ".join(self.info_station[:1])
         statusbarstr = statusbarstr[0:w-10]
-        self.screen.attron(curses.color_pair(2))
-        self.screen.addstr(h-3, 1, statusbarstr)
-        self.screen.addstr(h-3, len(statusbarstr) + 1,
+        self.screen.attron(curses.color_pair(3))
+        self.screen.addstr(h-4, 1, statusbarstr)
+        self.screen.addstr(h-4, len(statusbarstr) + 1,
                            " " * (w - len(statusbarstr) - 2))
-        self.screen.attroff(curses.color_pair(2))
+        self.screen.attroff(curses.color_pair(3))
+
+        
+        # Render status bar station info
+        if self.info_station:
+            statusbarstr = self.info_station[2]
+            statusbarstr = statusbarstr[0:w-10]
+            self.screen.attron(curses.color_pair(2))
+            self.screen.addstr(h-3, 1, statusbarstr)
+            self.screen.addstr(h-3, len(statusbarstr) + 1,
+                            " " * (w - len(statusbarstr) - 2))
+            self.screen.attroff(curses.color_pair(2))
+
+
 
         # Render status bar
-        statusbarstr = "Press 'q' to exit, 'i' info, 'p' play,'t' toggle, 'c' credits| {}".format(
-            self.play_station['name'] if self.play_station else '')
+        statusbarstr = "Press 'q' to exit, 'i' info, 'p' play,'t/spacebar' toggle, 'c' credits"
         statusbarstr = statusbarstr[0:w-10]
         self.screen.attron(curses.color_pair(3))
         self.screen.addstr(h-2, 1, statusbarstr)
@@ -147,6 +100,8 @@ class Radio():
                            " " * (w - len(statusbarstr) - 2))
         self.screen.attroff(curses.color_pair(3))
 
+
+    """ Show Credits for 3 seconds """
     def show_credits(self):
         h, w = self.screen.getmaxyx()
         self.screen.erase()
@@ -157,8 +112,8 @@ class Radio():
         self.screen.refresh()
         time.sleep(3)
 
+    """Continue running the TUI until get interrupted"""   
     def run(self):
-        """Continue running the TUI until get interrupted"""
         try:
             self.draw()
         except KeyboardInterrupt:
@@ -166,6 +121,57 @@ class Radio():
         finally:
             curses.endwin()
 
+    """ Check Events """
+    def _check_events(self):
+        key = self.screen.getch()
+            
+        # quit key
+        down_keys = [curses.KEY_DOWN, ord('j')]
+        up_keys = [curses.KEY_UP, ord('k')]
+        exit_keys = [ord('q'),ord('Q')]
+        play_keys = [curses.KEY_ENTER, ord('p'),ord('P'), 10, 13]
+        info_keys = [ord('i')]
+        play_toggle = [ord('t'),ord(' ')]
+        info_credits = [ord('c')]
+
+        # quit
+        if key in exit_keys:
+            sys.exit()
+
+        # key down
+        if key in down_keys and self.current_station < len(self.sm.stations) - 1:
+            self.current_station += 1
+
+        # key up
+        if key in up_keys and self.current_station > 0:
+            self.current_station -= 1
+
+        # key play
+        if key in play_keys:
+            self.play_station = self.sm.stations[self.current_station]
+            self.player.load_station(self.play_station)
+            self.player.play()
+            self.info_station = self.player.get_info()
+
+        # key get station info
+        if key in info_keys:
+            self.info_station = self.player.get_info()
+
+        # key toggle play
+        if key in play_toggle:
+            self.player.toggle()
+            if not self.player.is_playing:
+                self.info_station.clear()
+                self.info_station.append('STOPPED')
+            else:
+                self.info_station = self.player.get_info()
+        
+        # key for show credits
+        if key in info_credits:
+            self.show_credits()
+
+
+#################################
 
 def main():
     r = Radio()

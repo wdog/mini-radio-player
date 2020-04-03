@@ -9,6 +9,7 @@ class Player:
     is_playing = False
     instance = None
 
+    
     def __init__(self):
         try:
             self.instance = vlc.Instance('--verbose=-1')
@@ -20,6 +21,7 @@ class Player:
         except Exception as e:
             logging.critical(e)
 
+    
     def ParseReceived(self):
         logging.info('something changed')
         media = self.player.get_media()
