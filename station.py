@@ -1,9 +1,10 @@
 import logging
 import json
 
+
 class Station:
     """description"""
-    stations =[]
+    stations = []
 
     def __init__(self):
         self.load_stations_list()
@@ -12,6 +13,3 @@ class Station:
         """Load radio station list"""
         with open('radio.json') as f:
             self.stations = json.load(f)
-
-        
-        
