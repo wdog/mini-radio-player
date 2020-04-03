@@ -15,4 +15,4 @@ cd mini-radio-player
 ./r.py
 ```
 
-just modify file `radio.json` to change radio stations list
+just modify file [radio.json](radio.json) to change radio stations list
