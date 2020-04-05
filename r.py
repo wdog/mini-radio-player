@@ -177,5 +177,6 @@ def main():
 
 
 if __name__ == '__main__':
-    logging.basicConfig(filename='radio.log', level=logging.INFO)
+    logging.basicConfig(filename='radio.log', level=logging.DEBUG, format='  %(asctime)s - %(levelname)s - %(message)s')
+    logging.debug('start radio')
     main()
