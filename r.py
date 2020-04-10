@@ -20,31 +20,32 @@ class Radio():
     info_station = []
     current_station = 0
 
-
+    """ Init """
     def __init__(self):
-     
         self.screen = curses.initscr()    
-        
         # settings     
         self.settings = CursesSettings(self)   
         # station manager
         self.sm = Station()
         self.play_station = self.sm.stations[self.current_station]
-            
         # player 
         self.player = Player()
         
+    def spinning_cursor(self):
+        while True:
+            for cursor in '⠁⠂⠄⡀⢀⠠⠐⠈':
+                yield cursor
+
+
     """ Draw Menu Main Function """
     def draw(self):
-
-
+        self.spinner = self.spinning_cursor()
         while True:
             self.draw_menu()
             self._check_events()
     
     """ Draw Menu """
     def draw_menu(self):
-
         self.screen.attron(curses.color_pair(4))
         self.screen.border(0)
         self.screen.attroff(curses.color_pair(4))
@@ -73,8 +74,9 @@ class Radio():
         statusbarstr = statusbarstr[0:w-10]
         self.screen.attron(curses.color_pair(3))
         self.screen.addstr(h-4, 1, statusbarstr)
-        self.screen.addstr(h-4, len(statusbarstr) + 1,
-                           " " * (w - len(statusbarstr) - 2))
+        self.screen.addstr(h-4, len(statusbarstr) + 1, " " * (w - len(statusbarstr) - 2))
+
+        self.screen.addstr(h-4, w-8, "[" + next(self.spinner) + "]" )
         self.screen.attroff(curses.color_pair(3))
 
         
@@ -98,7 +100,6 @@ class Radio():
         self.screen.addstr(h-2, len(statusbarstr) + 1,
                            " " * (w - len(statusbarstr) - 2))
         self.screen.attroff(curses.color_pair(3))
-
 
     """ Show Credits for 3 seconds """
     def show_credits(self):
@@ -170,11 +171,9 @@ class Radio():
 
 
 #################################
-
 def main():
     r = Radio()
     r.run()
-
 
 if __name__ == '__main__':
     logging.basicConfig(filename='radio.log', level=logging.DEBUG, format='  %(asctime)s - %(levelname)s - %(message)s')

@@ -3,7 +3,7 @@ import json
 
 
 class Station:
-    """description"""
+    """STATION CLASS - MANAGES RADIO LIST"""
     stations = []
 
     def __init__(self):
