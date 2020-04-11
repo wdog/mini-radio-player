@@ -2,7 +2,7 @@
 A minimalistic radio player in python3 and curses
 
 
-![](images/mrp.png)
+![](images/screenshot.png)
 
 ```bash
 mkdir projects
