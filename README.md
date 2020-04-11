@@ -6,12 +6,13 @@ A minimalistic radio player in python3 and curses
 
 ```bash
 mkdir projects
-python3 -m venv projects/venv
 cd projects/
+
 git clone https://github.com/wdog/mini-radio-player.git
+cd mini-radio-player
+python3 -m venv projects/venv
 source venv/bin/activate
 pip3 install -r mini-radio-player/requirements.txt
-cd mini-radio-player
 ./r.py
 ```
 
