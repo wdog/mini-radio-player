@@ -6,7 +6,6 @@ class CursesSettings():
        
         self.screen = radio.screen
         self.screen.keypad(1)  # enable keyboard use
-
         # defin max row
         h, w = self.screen.getmaxyx()
         self.max_lines = h - 6

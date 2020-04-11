@@ -57,7 +57,7 @@ class Player:
         info = []
         
         startTime = time()
-        waitFor = 5
+        waitFor = 2
         try:
             while True:
                 media = self.player.get_media()

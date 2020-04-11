@@ -93,7 +93,7 @@ class Radio():
 
 
         # Render status bar
-        statusbarstr = "Press 'q' to exit, 'i' info, 'p' play,'t/spacebar' toggle, 'c' credits"
+        statusbarstr = "Press (q) exit (i) info, (p) play,(t|spacebar) toggle (1-9) shortcuts (c) credits"
         statusbarstr = statusbarstr[0:w-10]
         self.screen.attron(curses.color_pair(3))
         self.screen.addstr(h-2, 1, statusbarstr)
@@ -121,6 +121,14 @@ class Radio():
         finally:
             curses.endwin()
 
+    def setPlay(self):
+        """setPlay"""
+        self.play_station = self.sm.stations[self.current_station]
+        self.player.load_station(self.play_station)
+        self.player.play()
+        self.info_station = self.player.get_info()
+        
+
     """ Check Events """
     def _check_events(self):
         key = self.screen.getch()
@@ -133,6 +141,8 @@ class Radio():
         info_keys = [ord('i')]
         play_toggle = [ord('t'),ord(' ')]
         info_credits = [ord('c')]
+
+
 
         # quit
         if key in exit_keys:
@@ -148,10 +158,7 @@ class Radio():
 
         # key play
         if key in play_keys:
-            self.play_station = self.sm.stations[self.current_station]
-            self.player.load_station(self.play_station)
-            self.player.play()
-            self.info_station = self.player.get_info()
+            self.setPlay()
 
         # key get station info
         if key in info_keys:
@@ -169,8 +176,14 @@ class Radio():
         if key in info_credits:
             self.show_credits()
 
+        filter_keys = [str(i) for i in range(1,len(self.sm.stations))]
+        if chr(key) in filter_keys:
+            v = int(chr(key))-1
+            self.current_station = v
+            self.setPlay()
 
-#################################
+    
+""" MAIN """
 def main():
     r = Radio()
     r.run()
