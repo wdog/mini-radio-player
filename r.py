@@ -87,7 +87,7 @@ class Radio():
             self.screen.attroff(curses.color_pair(2))
 
         # Render status bar
-        statusbarstr = "Press (q) exit (i) info, (p) play,(t|spacebar) toggle (1-9) shortcuts (c) credits"
+        statusbarstr = "(q) exit (i) info, (p) play,(t|bar) toggle (1-9) srtcts (o) reorder (c) credits"
         statusbarstr = statusbarstr[0:w-10]
         self.screen.attron(curses.color_pair(3))
         self.screen.addstr(h-2, 1, statusbarstr)
