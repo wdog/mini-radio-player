@@ -52,8 +52,7 @@ class Radio():
 
         h, w = self.screen.getmaxyx()
         title = "~ MINI RADIO PLAYER ~"
-        self.screen.addstr(0, w//2 - len(title)//2,
-                           title, curses.color_pair(3))
+        self.screen.addstr(0, w//2 - len(title)//2, title, curses.color_pair(3))
 
         if self.current_station + 1 == self.top and self.current_station >= 0:
             self.top -= 1
@@ -61,13 +60,12 @@ class Radio():
         if self.current_station == self.top + self.settings.max_lines:
             self.top += 1
 
+        # draw station list
         for idx, item in enumerate(self.sm.stations[self.top:self.top + self.settings.max_lines]):
             row_idx = idx + self.top
             # set color
-            color = curses.color_pair(
-                3) if row_idx == self.current_station else curses.color_pair(1)
-            self.screen.addstr(idx + 2, 5, '{}. {}'.format(str(row_idx+1).rjust(
-                4, ' '), item['name'].ljust(self.settings.padchars, '.')), color)
+            color = curses.color_pair( 3) if row_idx == self.current_station else curses.color_pair(1)
+            self.screen.addstr(idx + 2, 5, '{}. {}'.format(str(row_idx+1).rjust( 4, ' '), item['name'].ljust(self.settings.padchars, '.')), color)
 
         # Render status bar station info
         statusbarstr = " - ".join(self.info_station[:1])
@@ -75,7 +73,6 @@ class Radio():
         self.screen.attron(curses.color_pair(3))
         self.screen.addstr(h-4, 1, statusbarstr)
         self.screen.addstr(h-4, len(statusbarstr) + 1, " " * (w - len(statusbarstr) - 2))
-
         self.screen.addstr(h-4, w-8, "[" + next(self.spinner) + "]" )
         self.screen.attroff(curses.color_pair(3))
 
@@ -86,19 +83,15 @@ class Radio():
             statusbarstr = statusbarstr[0:w-10]
             self.screen.attron(curses.color_pair(2))
             self.screen.addstr(h-3, 1, statusbarstr)
-            self.screen.addstr(h-3, len(statusbarstr) + 1,
-                            " " * (w - len(statusbarstr) - 2))
+            self.screen.addstr(h-3, len(statusbarstr) + 1, " " * (w - len(statusbarstr) - 2))
             self.screen.attroff(curses.color_pair(2))
-
-
 
         # Render status bar
         statusbarstr = "Press (q) exit (i) info, (p) play,(t|spacebar) toggle (1-9) shortcuts (c) credits"
         statusbarstr = statusbarstr[0:w-10]
         self.screen.attron(curses.color_pair(3))
         self.screen.addstr(h-2, 1, statusbarstr)
-        self.screen.addstr(h-2, len(statusbarstr) + 1,
-                           " " * (w - len(statusbarstr) - 2))
+        self.screen.addstr(h-2, len(statusbarstr) + 1, " " * (w - len(statusbarstr) - 2))
         self.screen.attroff(curses.color_pair(3))
 
     """ Show Credits for 3 seconds """
@@ -182,7 +175,45 @@ class Radio():
             self.current_station = v
             self.setPlay()
 
-    
+        if key == ord('o'):
+            self.showChange()
+            self.selecting = True
+            while self.selecting == True:
+                src = self.is_valid_station(self.screen.getstr().decode())
+                self.showChange(src)
+                dst = self.is_valid_station(self.screen.getstr().decode())
+                self.showChange(src,dst)
+                time.sleep(1)
+
+                if ( src > -1 and dst > -1 ):
+                    self.sm.change_order(src-1,dst-1)
+                self.selecting = False
+   
+    def showChange(self,src='',dst=''):
+        # Render status bar
+        h, w = self.screen.getmaxyx()
+        logging.info("SOURCE {} <-> DEST {} ".format(src,dst))
+        statusbarstr = "SOURCE {} <-> DEST {} ".format(src,dst)
+        statusbarstr = statusbarstr[0:w-10]
+        self.screen.attron(curses.color_pair(3))
+        self.screen.addstr(h-2, 1, statusbarstr)
+        self.screen.addstr(h-2, len(statusbarstr) + 1, " " * (w - len(statusbarstr) - 2))
+        self.screen.attroff(curses.color_pair(3))
+        self.screen.refresh() 
+
+    def is_valid_station(self,val):
+        
+        try:
+            r = int(val)
+            if ( r > len(self.sm.stations) ):
+                r = -1
+        except Exception as e:
+            r = -1
+        finally:
+            return r
+
+
+
 """ MAIN """
 def main():
     r = Radio()

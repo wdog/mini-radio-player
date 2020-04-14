@@ -13,3 +13,14 @@ class Station:
         """Load radio station list"""
         with open('radio.json') as f:
             self.stations = json.load(f)
+
+    def change_order(self, src, dst):
+        """ rewrite stations file with different order """
+        origSrc = self.stations[src]
+        self.stations[src] = self.stations[dst]
+        self.stations[dst] = origSrc
+        try:  
+            with open('radio.json','w') as f:
+                json.dump(self.stations,f)
+        except Exception as e:
+            logging.warn(e)
