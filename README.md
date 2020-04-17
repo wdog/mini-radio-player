@@ -10,9 +10,9 @@ cd projects/
 
 git clone https://github.com/wdog/mini-radio-player.git
 cd mini-radio-player
-python3 -m venv projects/venv
-source venv/bin/activate
-pip3 install -r mini-radio-player/requirements.txt
+python3 -m venv venv
+source bin/activate
+pip3 install -r requirements.txt
 ./r.py
 ```
 
